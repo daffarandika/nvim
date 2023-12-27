@@ -18,7 +18,10 @@ if not vim.loop.fs_stat(lazypath) then
   }
 end
 vim.opt.rtp:prepend(lazypath)
+
 vim.api.nvim_set_keymap("n", "<C-n>", ":Neotree toggle <CR>", { noremap = true, silent = true})
+
+vim.api.nvim_set_keymap('n', '<space>e', '<cmd>lua vim.diagnostic.open_float()<CR>', { noremap=true, silent=true }) 
 
 -- [[ Configure plugins ]]
 -- NOTE: Here is where you install your plugins.
@@ -37,6 +40,7 @@ require('lazy').setup({
   'tpope/vim-sleuth',
 
   'tpope/vim-surround',
+  { "ellisonleao/gruvbox.nvim", priority = 1000 , config = true, opts = ...},
   {
       "nvim-neo-tree/neo-tree.nvim",
       branch = "v3.x",
@@ -69,8 +73,7 @@ require('lazy').setup({
 
   {
     -- Autocompletion
-    'hrsh7th/nvim-cmp',
-    dependencies = {
+    'hrsh7th/nvim-cmp', dependencies = {
       -- Snippet Engine & its associated nvim-cmp source
       'L3MON4D3/LuaSnip',
       'saadparwaiz1/cmp_luasnip',
@@ -163,10 +166,10 @@ require('lazy').setup({
 
   {
     -- Theme inspired by Atom
-    'navarasu/onedark.nvim',
+    'ellisonleao/gruvbox.nvim',
     priority = 1000,
     config = function()
-      vim.cmd.colorscheme 'onedark'
+      vim.cmd.colorscheme 'gruvbox'
     end,
   },
 
@@ -631,3 +634,6 @@ cmp.setup {
 
 -- The line beneath this is called `modeline`. See `:help modeline`
 -- vim: ts=2 sts=2 sw=2 et
+--
+require'lspconfig'.clangd.setup{
+}
