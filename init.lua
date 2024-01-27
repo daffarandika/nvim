@@ -2,7 +2,7 @@ vim.g.mapleader = ' '
 vim.g.maplocalleader = ' '
 vim.wo.relativenumber = true
 vim.wo.number = true
-
+  
 -- [[ Install `lazy.nvim` plugin manager ]]
 --    https://github.com/folke/lazy.nvim
 --    `:help lazy.nvim.txt` for more info
@@ -30,7 +30,15 @@ vim.api.nvim_set_keymap('n', '<space>e', '<cmd>lua vim.diagnostic.open_float()<C
 --  You can also configure plugins after the setup call,
 --    as they will be available in your neovim runtime.
 require('lazy').setup({
-  -- NOTE: First, some plugins that don't require any configuration
+  -- Auto pair
+  {
+      'windwp/nvim-autopairs',
+      event = "InsertEnter",
+      opts = {} -- this is equalent to setup({}) function
+  },
+
+  -- Colorizer
+  'norcalli/nvim-colorizer.lua',
 
   -- Git related plugins
   'tpope/vim-fugitive',
@@ -284,6 +292,9 @@ vim.o.completeopt = 'menuone,noselect'
 
 -- NOTE: You should make sure your terminal supports this
 vim.o.termguicolors = true
+
+vim.o.tabstop = 2
+vim.o.shiftwidht = 2
 
 -- [[ Basic Keymaps ]]
 
@@ -580,6 +591,36 @@ mason_lspconfig.setup_handlers {
   end,
 }
 
+vim.api.nvim_create_autocmd({ "FileType" }, {
+  pattern = "css,eruby,html,htmldjango,javascriptreact,less,pug,sass,scss,typescriptreact",
+  callback = function()
+    vim.lsp.start({
+      cmd = { "emmet-language-server", "--stdio" },
+      root_dir = vim.fs.dirname(vim.fs.find({ ".git" }, { upward = true })[1]),
+      -- Read more about this options in the [vscode docs](https://code.visualstudio.com/docs/editor/emmet#_emmet-configuration).
+      -- **Note:** only the options listed in the table are supported.
+      init_options = {
+        --- @type string[]
+        excludeLanguages = {},
+        --- @type string[]
+        extensionsPath = {},
+        --- @type table<string, any> [Emmet Docs](https://docs.emmet.io/customization/preferences/)
+        preferences = {},
+        --- @type boolean Defaults to `true`
+        showAbbreviationSuggestions = true,
+        --- @type "always" | "never" Defaults to `"always"`
+        showExpandedAbbreviation = "always",
+        --- @type boolean Defaults to `false`
+        showSuggestionsAsSnippets = false,
+        --- @type table<string, any> [Emmet Docs](https://docs.emmet.io/customization/syntax-profiles/)
+        syntaxProfiles = {},
+        --- @type table<string, string> [Emmet Docs](https://docs.emmet.io/customization/snippets/#variables)
+        variables = {},
+      },
+    })
+  end,
+})
+
 -- [[ Configure nvim-cmp ]]
 -- See `:help cmp`
 local cmp = require 'cmp'
@@ -637,3 +678,11 @@ cmp.setup {
 --
 require'lspconfig'.clangd.setup{
 }
+--
+--local function open_nvim_tree(data)
+--  -- open the tree, find the file but don't focus it
+--  require("nvim-tree.api").tree.toggle({ focus = false, find_file = true, })
+--end
+--
+--vim.api.nvim_create_autocmd({ "VimEnter" }, { callback = open_nvim_tree })
+--
