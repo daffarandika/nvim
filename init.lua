@@ -3,9 +3,83 @@ vim.g.maplocalleader = ' '
 vim.wo.relativenumber = true
 vim.wo.number = true
 
+local map = vim.api.nvim_set_keymap
+local opts = { noremap = true, silent = true }
+
+vim.g.user_emmet_leader_key = ','
+vim.g.user_emmet_mode = 'n'
+
+vim.g.vimtex_view_method = 'zathura'
+vim.g.vimtex_view_general_viewer = 'zathura'
+vim.g.vimtex_compiler_method = 'pdflatex'
+vim.wo.linebreak = true
+
 -- keymaps for blackhole register
-vim.api.nvim_set_keymap("n", "<C-D>", "\"_d", {noremap = true})
-  
+map("n", "d", "\"_d", opts)
+map("v", "d", "\"_d", opts)
+
+map("n", "D", "\"_D", opts)
+map("v", "D", "\"_D", opts)
+
+map("n", "c", "\"_c", opts)
+map("v", "c", "\"_c", opts)
+
+map("n", "C", "\"_C", opts)
+map("v", "C", "\"_C", opts)
+
+map("n", "x", "\"_x", opts)
+map("v", "x", "\"_x", opts)
+
+map("n", "s", "\"_s", opts)
+map("v", "s", "\"_s", opts)
+
+map("n", "<C-D>", "d", opts)
+map("v", "<C-D>", "d", opts)
+
+map("n", "<leader>nt", ":VimwikiTable 1  2<CR>", opts)
+
+-- keymaps for barbar.nvim
+-- Move to previous/next
+map('n', '<A-,>', '<Cmd>BufferPrevious<CR>', opts)
+map('n', '<A-.>', '<Cmd>BufferNext<CR>', opts)
+-- Re-order to previous/next
+map('n', '<A-<>', '<Cmd>BufferMovePrevious<CR>', opts)
+map('n', '<A->>', '<Cmd>BufferMoveNext<CR>', opts)
+-- Goto buffer in position...
+map('n', '<A-1>', '<Cmd>BufferGoto 1<CR>', opts)
+map('n', '<A-2>', '<Cmd>BufferGoto 2<CR>', opts)
+map('n', '<A-3>', '<Cmd>BufferGoto 3<CR>', opts)
+map('n', '<A-4>', '<Cmd>BufferGoto 4<CR>', opts)
+map('n', '<A-5>', '<Cmd>BufferGoto 5<CR>', opts)
+map('n', '<A-6>', '<Cmd>BufferGoto 6<CR>', opts)
+map('n', '<A-7>', '<Cmd>BufferGoto 7<CR>', opts)
+map('n', '<A-8>', '<Cmd>BufferGoto 8<CR>', opts)
+map('n', '<A-9>', '<Cmd>BufferGoto 9<CR>', opts)
+map('n', '<A-0>', '<Cmd>BufferLast<CR>', opts)
+-- Pin/unpin buffer
+map('n', '<A-p>', '<Cmd>BufferPin<CR>', opts)
+-- Close buffer
+map('n', '<A-c>', '<Cmd>BufferClose<CR>', opts)
+-- Wipeout buffer
+--                 :BufferWipeout
+-- Close commands
+--                 :BufferCloseAllButCurrent
+--                 :BufferCloseAllButPinned
+--                 :BufferCloseAllButCurrentOrPinned
+--                 :BufferCloseBuffersLeft
+--                 :BufferCloseBuffersRight
+-- Magic buffer-picking mode
+map('n', '<C-p>', '<Cmd>BufferPick<CR>', opts)
+-- Sort automatically by...
+map('n', '<Space>bb', '<Cmd>BufferOrderByBufferNumber<CR>', opts)
+map('n', '<Space>bd', '<Cmd>BufferOrderByDirectory<CR>', opts)
+map('n', '<Space>bl', '<Cmd>BufferOrderByLanguage<CR>', opts)
+map('n', '<Space>bw', '<Cmd>BufferOrderByWindowNumber<CR>', opts)
+
+-- Other:
+-- :BarbarEnable - enables barbar (enabled by default)
+-- :BarbarDisable - very bad command, should never be used
+
 local lazypath = vim.fn.stdpath 'data' .. '/lazy/lazy.nvim'
 if not vim.loop.fs_stat(lazypath) then
   vim.fn.system {
@@ -19,17 +93,113 @@ if not vim.loop.fs_stat(lazypath) then
 end
 vim.opt.rtp:prepend(lazypath)
 
-vim.api.nvim_set_keymap("n", "<C-n>", ":Neotree toggle <CR>", { noremap = true, silent = true})
+vim.api.nvim_set_keymap("n", "<A-n>", ":Neotree toggle <CR>", { noremap = true, silent = true})
 
 vim.api.nvim_set_keymap('n', '<space>e', '<cmd>lua vim.diagnostic.open_float()<CR>', { noremap=true, silent=true }) 
 
 -- [[ Configure plugins ]]
--- NOTE: Here is where you install your plugins.
---  You can configure plugins using the `config` key.
---
---  You can also configure plugins after the setup call,
---    as they will be available in your neovim runtime.
 require('lazy').setup({
+  -- docker cu
+  {
+    'krisajenkins/telescope-docker.nvim',
+    event = 'VeryLazy',
+    dependencies = {
+        'nvim-telescope/telescope.nvim',
+    },
+    config = function()
+        require('telescope').load_extension('telescope_docker')
+        require('telescope_docker').setup {}
+    end,
+
+    -- Example keybindings. Adjust these to suit your preferences or remove
+    --   them entirely:
+    keys = {
+        {
+            '<Leader>dv',
+            ':Telescope telescope_docker docker_volumes<CR>',
+            desc = '[D]ocker [V]olumes',
+        },
+        {
+            '<Leader>di',
+            ':Telescope telescope_docker docker_images<CR>',
+            desc = '[D]ocker [I]mages',
+        },
+        {
+            '<Leader>dp',
+            ':Telescope telescope_docker docker_ps<CR>',
+            desc = '[D]ocker [P]rocesses',
+        },
+    },
+  },
+  -- remote development
+  {
+   "amitds1997/remote-nvim.nvim",
+   version = "*", -- Pin to GitHub releases
+   dependencies = {
+       "nvim-lua/plenary.nvim", -- For standard functions
+       "MunifTanjim/nui.nvim", -- To build the plugin UI
+       "nvim-telescope/telescope.nvim", -- For picking b/w different remote methods
+   },
+   config = true,
+  },
+  -- for taking code snapshot 
+  {
+    'michaelrommel/nvim-silicon',
+    lazy = true,
+      cmd = "Silicon",
+      config = function()
+        require("silicon").setup({
+          -- Configuration here, or leave empty to use defaults
+          font = "JetBrains Mono Nerd Font=34;Noto Color Emoji=34"
+        })
+    end
+  },
+  -- for notes
+  {
+    'vimwiki/vimwiki'
+  },
+  -- snippets 
+  {
+    'dcampos/nvim-snippy'
+  },
+  -- latex
+  {
+    'lervag/vimtex'
+  },
+  -- surround
+  {
+    'tpope/vim-surround'
+  },
+  -- dev container
+  {
+    'https://codeberg.org/esensar/nvim-dev-container',
+    dependencies = 'nvim-treesitter/nvim-treesitter'
+  },
+  -- emmet 
+  {
+    'mattn/emmet-vim'
+  },
+  -- telescope
+  {
+  'nvim-telescope/telescope.nvim', tag = '0.1.5',
+    dependencies = { 'nvim-lua/plenary.nvim' }
+  },
+  -- Bar
+  {
+    'romgrk/barbar.nvim',
+    dependencies = {
+      'lewis6991/gitsigns.nvim', -- OPTIONAL: for git status
+      'nvim-tree/nvim-web-devicons', -- OPTIONAL: for file icons
+    },
+    filetype = {
+      custom_colors = true,
+      enabled = true,
+    },
+    init = function() vim.g.barbar_auto_setup = false end,
+    opts = {},
+    version = '^1.0.0', -- optional: only update when a new 1.x version is released
+  },
+
   -- Auto pair
   {
       'windwp/nvim-autopairs',
@@ -48,7 +218,6 @@ require('lazy').setup({
   'tpope/vim-sleuth',
 
   'tpope/vim-surround',
-  { "ellisonleao/gruvbox.nvim", priority = 1000 , config = true, opts = ...},
   {
       "nvim-neo-tree/neo-tree.nvim",
       branch = "v3.x",
@@ -293,6 +462,7 @@ vim.o.completeopt = 'menuone,noselect'
 -- NOTE: You should make sure your terminal supports this
 vim.o.termguicolors = true
 
+-- -- tabbing
 vim.o.tabstop = 2
 vim.o.shiftwidht = 2
 
@@ -395,7 +565,7 @@ end
 vim.keymap.set('n', '<leader>s/', telescope_live_grep_open_files, { desc = '[S]earch [/] in Open Files' })
 vim.keymap.set('n', '<leader>ss', require('telescope.builtin').builtin, { desc = '[S]earch [S]elect Telescope' })
 vim.keymap.set('n', '<leader>gf', require('telescope.builtin').git_files, { desc = 'Search [G]it [F]iles' })
-vim.keymap.set('n', '<leader>sf', require('telescope.builtin').find_files, { desc = '[S]earch [F]iles' })
+vim.keymap.set('n', '<leader>ff', require('telescope.builtin').find_files, { desc = '[S]earch [F]iles' })
 vim.keymap.set('n', '<leader>sh', require('telescope.builtin').help_tags, { desc = '[S]earch [H]elp' })
 vim.keymap.set('n', '<leader>sw', require('telescope.builtin').grep_string, { desc = '[S]earch current [W]ord' })
 vim.keymap.set('n', '<leader>sg', require('telescope.builtin').live_grep, { desc = '[S]earch by [G]rep' })
@@ -591,35 +761,35 @@ mason_lspconfig.setup_handlers {
   end,
 }
 
-vim.api.nvim_create_autocmd({ "FileType" }, {
-  pattern = "css,eruby,html,htmldjango,javascriptreact,less,pug,sass,scss,typescriptreact",
-  callback = function()
-    vim.lsp.start({
-      cmd = { "emmet-language-server", "--stdio" },
-      root_dir = vim.fs.dirname(vim.fs.find({ ".git" }, { upward = true })[1]),
-      -- Read more about this options in the [vscode docs](https://code.visualstudio.com/docs/editor/emmet#_emmet-configuration).
-      -- **Note:** only the options listed in the table are supported.
-      init_options = {
-        --- @type string[]
-        excludeLanguages = {},
-        --- @type string[]
-        extensionsPath = {},
-        --- @type table<string, any> [Emmet Docs](https://docs.emmet.io/customization/preferences/)
-        preferences = {},
-        --- @type boolean Defaults to `true`
-        showAbbreviationSuggestions = true,
-        --- @type "always" | "never" Defaults to `"always"`
-        showExpandedAbbreviation = "always",
-        --- @type boolean Defaults to `false`
-        showSuggestionsAsSnippets = false,
-        --- @type table<string, any> [Emmet Docs](https://docs.emmet.io/customization/syntax-profiles/)
-        syntaxProfiles = {},
-        --- @type table<string, string> [Emmet Docs](https://docs.emmet.io/customization/snippets/#variables)
-        variables = {},
-      },
-    })
-  end,
-})
+-- vim.api.nvim_create_autocmd({ "FileType" }, {
+--   pattern = "css,eruby,html,htmldjango,javascriptreact,less,pug,sass,scss,typescriptreact",
+--   callback = function()
+--     vim.lsp.start({
+--       cmd = { "emmet-language-server", "--stdio" },
+--       root_dir = vim.fs.dirname(vim.fs.find({ ".git" }, { upward = true })[1]),
+--       -- Read more about this options in the [vscode docs](https://code.visualstudio.com/docs/editor/emmet#_emmet-configuration).
+--       -- **Note:** only the options listed in the table are supported.
+--       init_options = {
+--         --- @type string[]
+--         excludeLanguages = {},
+--         --- @type string[]
+--         extensionsPath = {},
+--         --- @type table<string, any> [Emmet Docs](https://docs.emmet.io/customization/preferences/)
+--         preferences = {},
+--         --- @type boolean Defaults to `true`
+--         showAbbreviationSuggestions = true,
+--         --- @type "always" | "never" Defaults to `"always"`
+--         showExpandedAbbreviation = "always",
+--         --- @type boolean Defaults to `false`
+--         showSuggestionsAsSnippets = false,
+--         --- @type table<string, any> [Emmet Docs](https://docs.emmet.io/customization/syntax-profiles/)
+--         syntaxProfiles = {},
+--         --- @type table<string, string> [Emmet Docs](https://docs.emmet.io/customization/snippets/#variables)
+--         variables = {},
+--       },
+--     })
+--   end,
+-- })
 
 -- [[ Configure nvim-cmp ]]
 -- See `:help cmp`
@@ -673,16 +843,31 @@ cmp.setup {
   },
 }
 
+require("devcontainer").setup{}
+
+local builtin = require('telescope.builtin')
+vim.keymap.set('n', '<leader>ff', builtin.find_files, {})
+vim.keymap.set('n', '<leader>fg', builtin.live_grep, {})
+vim.keymap.set('n', '<leader>fb', builtin.buffers, {})
+vim.keymap.set('n', '<leader>fh', builtin.help_tags, {})
+
 -- The line beneath this is called `modeline`. See `:help modeline`
 -- vim: ts=2 sts=2 sw=2 et
 --
 require'lspconfig'.clangd.setup{
 }
---
---local function open_nvim_tree(data)
---  -- open the tree, find the file but don't focus it
---  require("nvim-tree.api").tree.toggle({ focus = false, find_file = true, })
---end
---
---vim.api.nvim_create_autocmd({ "VimEnter" }, { callback = open_nvim_tree })
---
+
+require 'colorizer'.setup()
+vim.cmd("colorscheme gruvbox")
+
+require('snippy').setup({
+    mappings = {
+        is = {
+            ['<Tab>'] = 'expand_or_advance',
+            ['<S-Tab>'] = 'previous',
+        },
+        nx = {
+            ['<leader>x'] = 'cut_text',
+        },
+    },
+})
