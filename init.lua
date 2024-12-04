@@ -14,6 +14,8 @@ vim.g.vimtex_view_general_viewer = 'zathura'
 vim.g.vimtex_compiler_method = 'pdflatex'
 vim.wo.linebreak = true
 
+vim.opt.iskeyword:remove("_")
+
 -- keymaps for general setting
 map("n", "<A-s>", "<cmd> wa<CR>", opts)
 
@@ -39,6 +41,8 @@ map("v", "s", "\"_s", opts)
 map("n", "<C-D>", "d", opts)
 map("v", "<C-D>", "d", opts)
 
+vim.keymap.set('n', '<leader>u', vim.cmd.UndotreeToggle)
+
 -- keymaps for vimwiki
 map("n", "<leader>nt", ":VimwikiTable 1  2<CR>", opts)
 
@@ -50,8 +54,8 @@ map("n", "<C-l>", "<cmd> TmuxNavigateRight<CR>", opts)
 
 -- keymaps for barbar.nvim
 -- Move to previous/next
-map('n', '<A-,>', '<Cmd>BufferPrevious<CR>', opts)
-map('n', '<A-.>', '<Cmd>BufferNext<CR>', opts)
+map('n', '<A-h>', '<Cmd>BufferPrevious<CR>', opts)
+map('n', '<A-l>', '<Cmd>BufferNext<CR>', opts)
 -- Re-order to previous/next
 map('n', '<A-<>', '<Cmd>BufferMovePrevious<CR>', opts)
 map('n', '<A->>', '<Cmd>BufferMoveNext<CR>', opts)
@@ -105,11 +109,108 @@ vim.opt.rtp:prepend(lazypath)
 
 vim.api.nvim_set_keymap("n", "<A-n>", ":Neotree toggle <CR>", { noremap = true, silent = true})
 
-vim.api.nvim_set_keymap('n', '<space>e', '<cmd>lua vim.diagnostic.open_float()<CR>', { noremap=true, silent=true }) 
+vim.api.nvim_set_keymap('n', '<space>e', '<cmd>lua vim.diagnostic.open_float()<CR>', { noremap=true, silent=true })
+
+vim.keymap.set("n", "-", "<CMD>Oil<CR>", { desc = "Open parent directory" })
+
+vim.keymap.set('n', '<leader>m', "<CMD>TSJToggle<CR>", { desc = "Line splitting toggle" })
+
+vim.keymap.set({'n', 'x', 'o'}, '<leader>l',  '<Plug>(leap-forward)')
+vim.keymap.set({'n', 'x', 'o'}, '<leader>L',  '<Plug>(leap-backward)')
+vim.keymap.set({'n', 'x', 'o'}, '<leader>gl', '<Plug>(leap-from-window)')
 
 -- [[ Configure plugins ]]
 require('lazy').setup({
-	{ 'mfussenegger/nvim-jdtls' },
+	{
+		"tjdevries/templ.nvim"
+	},
+	{
+		"R-nvim/R.nvim",
+		dependencies = {
+			"nvim-treesitter/nvim-treesitter",
+			"R-nvim/cmp-r"
+		},
+		 -- Only required if you also set defaults.lazy = true
+		lazy = false,
+		-- R.nvim is still young and we may make some breaking changes from time
+		-- to time. For now we recommend pinning to the latest minor version
+		-- like so:
+		version = "~0.1.0"
+	},
+	{
+		"R-nvim/cmp-r",
+		{
+			"hrsh7th/nvim-cmp",
+			config = function()
+				require("cmp").setup({ sources = {{ name = "cmp_r" }}})
+				require("cmp_r").setup({})
+			end,
+		},
+	},
+	{"tweekmonster/django-plus.vim" },
+	{ "interdependence/tree-sitter-htmldjango" },
+	{ "galooshi/vim-import-js" },
+	{ 'windwp/nvim-ts-autotag' },
+	{ 'tranvansang/octave.vim' },
+	{
+		'ggandor/leap.nvim',
+		dependencies = { 'tpope/vim-repeat' }
+	},
+	{
+		'Wansmer/treesj',
+		keys = { '<space>m', '<space>j', '<space>s' },
+		dependencies = { 'nvim-treesitter/nvim-treesitter' }, -- if you install parsers with `nvim-treesitter`
+		config = function()
+			require('treesj').setup({--[[ your config ]]})
+		end,
+	},
+	{
+		'stevearc/oil.nvim',
+		opts = {},
+		-- Optional dependencies
+		dependencies = { { "echasnovski/mini.icons", opts = {} } },
+		-- dependencies = { "nvim-tree/nvim-web-devicons" }, -- use if prefer nvim-web-devicons
+	},
+	{'mbbill/undotree'},
+	{'othree/xml.vim'},
+	{
+		"folke/trouble.nvim",
+		opts = {}, -- for default options, refer to the configuration section for custom setup.
+		cmd = "Trouble",
+		keys = {
+			{
+				"<leader>xx",
+				"<cmd>Trouble diagnostics toggle<cr>",
+				desc = "Diagnostics (Trouble)",
+			},
+			{
+				"<leader>xX",
+				"<cmd>Trouble diagnostics toggle filter.buf=0<cr>",
+				desc = "Buffer Diagnostics (Trouble)",
+			},
+			{
+				"<leader>cs",
+				"<cmd>Trouble symbols toggle focus=false<cr>",
+				desc = "Symbols (Trouble)",
+			},
+			{
+				"<leader>cl",
+				"<cmd>Trouble lsp toggle focus=false win.position=right<cr>",
+				desc = "LSP Definitions / references / ... (Trouble)",
+			},
+			{
+				"<leader>xL",
+				"<cmd>Trouble loclist toggle<cr>",
+				desc = "Location List (Trouble)",
+			},
+			{
+				"<leader>xQ",
+				"<cmd>Trouble qflist toggle<cr>",
+				desc = "Quickfix List (Trouble)",
+			},
+		},
+	},
+	-- {'nvim-java/nvim-java'},
 	{
 		'barrett-ruth/live-server.nvim',
 		build = 'pnpm add -g live-server',
@@ -448,8 +549,16 @@ require('lazy').setup({
 		'nvim-treesitter/nvim-treesitter',
 		dependencies = {
 			'nvim-treesitter/nvim-treesitter-textobjects',
+			'vrischmann/tree-sitter-templ'
 		},
 		build = ':TSUpdate',
+		run = ":TSUpdate",
+		config = function ()
+			require("nvim-treesitter.configs").setup({
+				ensure_installed = { "markdown", "markdown_inline", "r", "rnoweb", "yaml" },
+				highlight = { enable = true },
+			})
+		end
 	},
 
 	-- NOTE: Next Step on Your Neovim Journey: Add/Configure additional "plugins" for kickstart
@@ -629,7 +738,7 @@ vim.defer_fn(function()
 		sync_install = false,
 		ignore_install = {},
 		-- Add languages to be installed here that you want installed for treesitter
-		ensure_installed = { 'c', 'cpp', 'go', 'lua', 'python', 'rust', 'tsx', 'javascript', 'typescript', 'vimdoc', 'vim', 'bash', 'kotlin', 'java' },
+		ensure_installed = { 'c', 'cpp', 'go', 'lua', 'python', 'rust', 'tsx', 'javascript', 'typescript', 'vimdoc', 'vim', 'bash', 'kotlin', 'java',},
 
 		-- Autoinstall languages that are not installed. Defaults to false (but you can change for yourself!)
 		auto_install = false,
@@ -709,7 +818,7 @@ local on_attach = function(_, bufnr)
 		vim.keymap.set('n', keys, func, { buffer = bufnr, desc = desc })
 	end
 
-	nmap('<leader>rn', vim.lsp.buf.rename, '[R]e[n]ame')
+	-- nmap('<leader>rn', vim.lsp.buf.rename, '[R]e[n]ame')
 	nmap('<leader>ca', vim.lsp.buf.code_action, '[C]ode [A]ction')
 
 	nmap('gd', require('telescope.builtin').lsp_definitions, '[G]oto [D]efinition')
@@ -769,6 +878,7 @@ require('mason-lspconfig').setup()
 --  If you want to override the default filetypes that your language server will attach to you can
 --  define the property 'filetypes' to the map in question.
 local servers = {
+	eslint = {},
 	-- clangd = {},
 	-- gopls = {},
 	-- pyright = {},
@@ -896,6 +1006,18 @@ cmp.setup {
 
 require("devcontainer").setup{}
 
+-- require'nvim-treesitter.configs'.setup {
+-- 	highlight = {
+-- 		enable = true,
+-- 		disable = { "html", "django" },
+--
+--   -- Automatically install missing parsers when entering buffer
+--   -- Recommendation: set to false if you don't have `tree-sitter` CLI installed locally
+-- 		-- auto_install = true,
+-- 	}
+-- }
+
+
 local builtin = require('telescope.builtin')
 vim.keymap.set('n', '<leader>ff', builtin.find_files, {})
 vim.keymap.set('n', '<leader>fg', builtin.live_grep, {})
@@ -905,6 +1027,13 @@ vim.keymap.set('n', '<leader>fh', builtin.help_tags, {})
 -- The line beneath this is called `modeline`. See `:help modeline`
 -- vim: ts=2 sts=2 sw=2 et
 --
+
+-- require'java'.setup()
+-- require('lspconfig').jdtls.setup({})
+require'lspconfig'.html.setup{
+	disable = true
+}
+
 require'lspconfig'.clangd.setup{}
 
 require'lspconfig'.eslint.setup{}
@@ -925,3 +1054,19 @@ require('snippy').setup({
 
 vim.g.loaded_netrwPlugin = 1
 vim.g.loaded_netrw = 1
+vim.keymap.set("n", "<leader>rn", vim.lsp.buf.rename, {})
+vim.keymap.set('n', '<leader>gh', "<CMD>ClangdSwitchSourceHeader<CR>", { desc = "[g]oto [h]eader"})
+vim.filetype.add({ extension = { templ = "templ" } })
+-- lspconfig.tailwindcss.setup({
+--     on_attach = on_attach,
+--     capabilities = capabilities,
+--     filetypes = { "templ", "astro", "javascript", "typescript", "react" },
+--     settings = {
+--       tailwindCSS = {
+--         includeLanguages = {
+--           templ = "html",
+--         },
+--       },
+--     },
+-- })
+--
