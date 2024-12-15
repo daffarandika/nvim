@@ -52,47 +52,12 @@ map("n", "<C-j>", "<cmd> TmuxNavigateDown<CR>", opts)
 map("n", "<C-k>", "<cmd> TmuxNavigateUp<CR>", opts)
 map("n", "<C-l>", "<cmd> TmuxNavigateRight<CR>", opts)
 
--- keymaps for barbar.nvim
+-- keymaps for buffer management
 -- Move to previous/next
-map('n', '<A-h>', '<Cmd>BufferPrevious<CR>', opts)
-map('n', '<A-l>', '<Cmd>BufferNext<CR>', opts)
--- Re-order to previous/next
-map('n', '<A-<>', '<Cmd>BufferMovePrevious<CR>', opts)
-map('n', '<A->>', '<Cmd>BufferMoveNext<CR>', opts)
--- Goto buffer in position...
-map('n', '<A-1>', '<Cmd>BufferGoto 1<CR>', opts)
-map('n', '<A-2>', '<Cmd>BufferGoto 2<CR>', opts)
-map('n', '<A-3>', '<Cmd>BufferGoto 3<CR>', opts)
-map('n', '<A-4>', '<Cmd>BufferGoto 4<CR>', opts)
-map('n', '<A-5>', '<Cmd>BufferGoto 5<CR>', opts)
-map('n', '<A-6>', '<Cmd>BufferGoto 6<CR>', opts)
-map('n', '<A-7>', '<Cmd>BufferGoto 7<CR>', opts)
-map('n', '<A-8>', '<Cmd>BufferGoto 8<CR>', opts)
-map('n', '<A-9>', '<Cmd>BufferGoto 9<CR>', opts)
-map('n', '<A-0>', '<Cmd>BufferLast<CR>', opts)
--- Pin/unpin buffer
-map('n', '<A-p>', '<Cmd>BufferPin<CR>', opts)
+map('n', '<A-h>', '<Cmd>bprevious<CR>', opts)
+map('n', '<A-l>', '<Cmd>bnext<CR>', opts)
 -- Close buffer
-map('n', '<A-c>', '<Cmd>BufferClose<CR>', opts)
--- Wipeout buffer
---                 :BufferWipeout
--- Close commands
---                 :BufferCloseAllButCurrent
---                 :BufferCloseAllButPinned
---                 :BufferCloseAllButCurrentOrPinned
---                 :BufferCloseBuffersLeft
---                 :BufferCloseBuffersRight
--- Magic buffer-picking mode
-map('n', '<C-p>', '<Cmd>BufferPick<CR>', opts)
--- Sort automatically by...
-map('n', '<Space>bb', '<Cmd>BufferOrderByBufferNumber<CR>', opts)
-map('n', '<Space>bd', '<Cmd>BufferOrderByDirectory<CR>', opts)
-map('n', '<Space>bl', '<Cmd>BufferOrderByLanguage<CR>', opts)
-map('n', '<Space>bw', '<Cmd>BufferOrderByWindowNumber<CR>', opts)
-
--- Other:
--- :BarbarEnable - enables barbar (enabled by default)
--- :BarbarDisable - very bad command, should never be used
+map('n', '<A-c>', '<Cmd>bw<CR>', opts)
 
 local lazypath = vim.fn.stdpath 'data' .. '/lazy/lazy.nvim'
 if not vim.loop.fs_stat(lazypath) then
@@ -122,6 +87,36 @@ vim.keymap.set({'n', 'x', 'o'}, '<leader>gl', '<Plug>(leap-from-window)')
 -- [[ Configure plugins ]]
 require('lazy').setup({
 	{
+		'themaxmarchuk/tailwindcss-colors.nvim',
+		config = function()
+			require('tailwindcss-colors').setup()
+		end
+	},
+	-- Templ language support
+	{
+		'vrischmann/tree-sitter-templ',
+		dependencies = {
+			'nvim-treesitter/nvim-treesitter',
+		},
+	},
+
+	-- Tailwind CSS support
+	{
+		'laytan/tailwind-sorter.nvim',
+		dependencies = { 'nvim-treesitter/nvim-treesitter' },
+		build = 'cd formatter && npm ci && npm run build',
+		config = function()
+			require('tailwind-sorter').setup({
+				on_save = true,
+				order_by = {
+					'custom',
+					'variants',
+					'Unknown',
+				},
+			})
+		end
+	},
+	{
 		"tjdevries/templ.nvim"
 	},
 	{
@@ -130,7 +125,7 @@ require('lazy').setup({
 			"nvim-treesitter/nvim-treesitter",
 			"R-nvim/cmp-r"
 		},
-		 -- Only required if you also set defaults.lazy = true
+		-- Only required if you also set defaults.lazy = true
 		lazy = false,
 		-- R.nvim is still young and we may make some breaking changes from time
 		-- to time. For now we recommend pinning to the latest minor version
@@ -311,21 +306,6 @@ require('lazy').setup({
 		'nvim-telescope/telescope.nvim', tag = '0.1.5',
 		dependencies = { 'nvim-lua/plenary.nvim' }
 	},
-	-- Bar
-	{
-		'romgrk/barbar.nvim',
-		dependencies = {
-			'lewis6991/gitsigns.nvim', -- OPTIONAL: for git status
-			'nvim-tree/nvim-web-devicons', -- OPTIONAL: for file icons
-		},
-		filetype = {
-			custom_colors = true,
-			enabled = true,
-		},
-		init = function() vim.g.barbar_auto_setup = false end,
-		opts = {},
-		version = '^1.0.0', -- optional: only update when a new 1.x version is released
-	},
 
 	-- Auto pair
 	{
@@ -393,6 +373,25 @@ require('lazy').setup({
 			-- Additional lua configuration, makes nvim stuff amazing!
 			'folke/neodev.nvim',
 		},
+		config = function()
+			local lspconfig = require('lspconfig')
+			-- Tailwind CSS Language Server
+			lspconfig.tailwindcss.setup({
+				filetypes = { "templ", "astro", "javascript", "typescript", "react" },
+				settings = {
+					tailwindCSS = {
+						experimental = {
+							classRegex = {
+								-- Support for Templ class attributes
+								{ "class:\\s*\"([^\"]*)", "\"([^\"]*)\"" },
+								{ "class:\\s*'([^']*)", "'([^']*)'" },
+								{ "class=[{]?\"?([^\"}>]*)", "\"?([^\"}]*)" }
+							}
+						}
+					}
+				}
+			})
+		end,
 	},
 
 	{
@@ -443,7 +442,7 @@ require('lazy').setup({
 						gs.next_hunk()
 					end)
 					return '<Ignore>'
-				end, { expr = true, desc = 'Jump to next hunk' })
+					end, { expr = true, desc = 'Jump to next hunk' })
 
 				map({ 'n', 'v' }, '[c', function()
 					if vim.wo.diff then
@@ -453,16 +452,16 @@ require('lazy').setup({
 						gs.prev_hunk()
 					end)
 					return '<Ignore>'
-				end, { expr = true, desc = 'Jump to previous hunk' })
+					end, { expr = true, desc = 'Jump to previous hunk' })
 
 				-- Actions
 				-- visual mode
 				map('v', '<leader>hs', function()
 					gs.stage_hunk { vim.fn.line '.', vim.fn.line 'v' }
-				end, { desc = 'stage git hunk' })
+					end, { desc = 'stage git hunk' })
 				map('v', '<leader>hr', function()
 					gs.reset_hunk { vim.fn.line '.', vim.fn.line 'v' }
-				end, { desc = 'reset git hunk' })
+					end, { desc = 'reset git hunk' })
 				-- normal mode
 				map('n', '<leader>hs', gs.stage_hunk, { desc = 'git stage hunk' })
 				map('n', '<leader>hr', gs.reset_hunk, { desc = 'git reset hunk' })
@@ -472,11 +471,11 @@ require('lazy').setup({
 				map('n', '<leader>hp', gs.preview_hunk, { desc = 'preview git hunk' })
 				map('n', '<leader>hb', function()
 					gs.blame_line { full = false }
-				end, { desc = 'git blame line' })
+					end, { desc = 'git blame line' })
 				map('n', '<leader>hd', gs.diffthis, { desc = 'git diff against index' })
 				map('n', '<leader>hD', function()
 					gs.diffthis '~'
-				end, { desc = 'git diff against last commit' })
+					end, { desc = 'git diff against last commit' })
 
 				-- Toggles
 				map('n', '<leader>tb', gs.toggle_current_line_blame, { desc = 'toggle git blame line' })
@@ -492,9 +491,6 @@ require('lazy').setup({
 		-- Theme inspired by Atom
 		'https://github.com/shaunsingh/nord.nvim',
 		priority = 1000,
-		config = function()
-			vim.cmd.colorscheme 'nord'
-		end,
 	},
 
 	{
@@ -549,7 +545,6 @@ require('lazy').setup({
 		'nvim-treesitter/nvim-treesitter',
 		dependencies = {
 			'nvim-treesitter/nvim-treesitter-textobjects',
-			'vrischmann/tree-sitter-templ'
 		},
 		build = ':TSUpdate',
 		run = ":TSUpdate",
@@ -616,6 +611,7 @@ vim.o.completeopt = 'menuone,noselect'
 
 -- NOTE: You should make sure your terminal supports this
 vim.o.termguicolors = true
+vim.cmd'colorscheme nord'
 
 -- -- tabbing
 vim.o.tabstop = 4
@@ -659,6 +655,10 @@ require('telescope').setup {
 				['<C-d>'] = false,
 			},
 		},
+		vimgrep_arguments = {
+			"rg",
+			'--hidden',
+		}
 	},
 }
 
@@ -838,12 +838,12 @@ local on_attach = function(_, bufnr)
 	nmap('<leader>wr', vim.lsp.buf.remove_workspace_folder, '[W]orkspace [R]emove Folder')
 	nmap('<leader>wl', function()
 		print(vim.inspect(vim.lsp.buf.list_workspace_folders()))
-	end, '[W]orkspace [L]ist Folders')
+		end, '[W]orkspace [L]ist Folders')
 
 	-- Create a command `:Format` local to the LSP buffer
 	vim.api.nvim_buf_create_user_command(bufnr, 'Format', function(_)
 		vim.lsp.buf.format()
-	end, { desc = 'Format current buffer with LSP' })
+		end, { desc = 'Format current buffer with LSP' })
 end
 
 -- document existing key chains
@@ -880,7 +880,7 @@ require('mason-lspconfig').setup()
 local servers = {
 	eslint = {},
 	-- clangd = {},
-	-- gopls = {},
+	gopls = {},
 	-- pyright = {},
 	-- rust_analyzer = {},
 	-- tsserver = {},
@@ -986,7 +986,7 @@ cmp.setup {
 			else
 				fallback()
 			end
-		end, { 'i', 's' }),
+			end, { 'i', 's' }),
 		['<S-Tab>'] = cmp.mapping(function(fallback)
 			if cmp.visible() then
 				cmp.select_prev_item()
@@ -995,7 +995,7 @@ cmp.setup {
 			else
 				fallback()
 			end
-		end, { 'i', 's' }),
+			end, { 'i', 's' }),
 	},
 	sources = {
 		{ name = 'nvim_lsp' },
@@ -1030,13 +1030,57 @@ vim.keymap.set('n', '<leader>fh', builtin.help_tags, {})
 
 -- require'java'.setup()
 -- require('lspconfig').jdtls.setup({})
-require'lspconfig'.html.setup{
+require('lspconfig').html.setup{
 	disable = true
+}
+
+require('lspconfig').gopls.setup {
+	cmd = { "gopls" },
+	filetypes = { "go", "gomod", "gowork", "gotmpl" },
+	settings = {
+		gopls = {
+			completeUnimported = true,
+			usePlaceholders = true,
+			analyses = {
+				unusedparams = true
+			}
+		}
+	}
 }
 
 require'lspconfig'.clangd.setup{}
 
 require'lspconfig'.eslint.setup{}
+
+require'lspconfig'.tailwindcss.setup{
+-- Ensure Tailwind LSP runs on Templ files
+        filetypes = {
+          'html', 
+          'css', 
+          'scss', 
+          'javascript', 
+          'javascriptreact', 
+          'typescript', 
+          'typescriptreact', 
+          'svelte', 
+          'vue', 
+          'templ'  -- Explicitly add templ here
+        },
+        
+        -- Advanced class detection for Templ
+        settings = {
+          tailwindCSS = {
+            experimental = {
+              classRegex = {
+                -- Templ-specific class attribute patterns
+                { "class:\\s*\"([^\"]*)", "\"([^\"]*)\"" },
+                { "class:\\s*'([^']*)", "'([^']*)'" },
+                -- Add more templ-specific regex if needed
+                { "class=[{]?\"?([^\"}>]*)", "\"?([^\"}]*)"} }
+              }
+            }
+          }
+}
 
 require 'colorizer'.setup()
 
@@ -1057,16 +1101,4 @@ vim.g.loaded_netrw = 1
 vim.keymap.set("n", "<leader>rn", vim.lsp.buf.rename, {})
 vim.keymap.set('n', '<leader>gh', "<CMD>ClangdSwitchSourceHeader<CR>", { desc = "[g]oto [h]eader"})
 vim.filetype.add({ extension = { templ = "templ" } })
--- lspconfig.tailwindcss.setup({
---     on_attach = on_attach,
---     capabilities = capabilities,
---     filetypes = { "templ", "astro", "javascript", "typescript", "react" },
---     settings = {
---       tailwindCSS = {
---         includeLanguages = {
---           templ = "html",
---         },
---       },
---     },
--- })
 --
