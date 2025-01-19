@@ -1,3 +1,5 @@
+vim.g.loaded_netrw = 1
+
 vim.g.mapleader = ' '
 vim.g.maplocalleader = ' '
 vim.wo.relativenumber = true
@@ -15,6 +17,9 @@ vim.g.vimtex_compiler_method = 'pdflatex'
 vim.wo.linebreak = true
 
 vim.opt.iskeyword:remove("_")
+
+require("custom.lazy")
+require("nord").set()
 
 -- keymaps for general setting
 map("n", "<A-s>", "<cmd> wa<CR>", opts)
@@ -52,25 +57,9 @@ map("n", "<C-j>", "<cmd> TmuxNavigateDown<CR>", opts)
 map("n", "<C-k>", "<cmd> TmuxNavigateUp<CR>", opts)
 map("n", "<C-l>", "<cmd> TmuxNavigateRight<CR>", opts)
 
--- keymaps for buffer management
--- Move to previous/next
-map('n', '<A-h>', '<Cmd>bprevious<CR>', opts)
-map('n', '<A-l>', '<Cmd>bnext<CR>', opts)
 -- Close buffer
 map('n', '<A-c>', '<Cmd>bw<CR>', opts)
 
-local lazypath = vim.fn.stdpath 'data' .. '/lazy/lazy.nvim'
-if not vim.loop.fs_stat(lazypath) then
-	vim.fn.system {
-		'git',
-		'clone',
-		'--filter=blob:none',
-		'https://github.com/folke/lazy.nvim.git',
-		'--branch=stable', -- latest stable release
-		lazypath,
-	}
-end
-vim.opt.rtp:prepend(lazypath)
 
 vim.api.nvim_set_keymap("n", "<A-n>", ":Neotree toggle <CR>", { noremap = true, silent = true})
 
@@ -84,492 +73,6 @@ vim.keymap.set({'n', 'x', 'o'}, '<leader>l',  '<Plug>(leap-forward)')
 vim.keymap.set({'n', 'x', 'o'}, '<leader>L',  '<Plug>(leap-backward)')
 vim.keymap.set({'n', 'x', 'o'}, '<leader>gl', '<Plug>(leap-from-window)')
 
--- [[ Configure plugins ]]
-require('lazy').setup({
-	{
-		'themaxmarchuk/tailwindcss-colors.nvim',
-		config = function()
-			require('tailwindcss-colors').setup()
-		end
-	},
-	-- Templ language support
-	{
-		'vrischmann/tree-sitter-templ',
-		dependencies = {
-			'nvim-treesitter/nvim-treesitter',
-		},
-	},
-
-	-- Tailwind CSS support
-	{
-		'laytan/tailwind-sorter.nvim',
-		dependencies = { 'nvim-treesitter/nvim-treesitter' },
-		build = 'cd formatter && npm ci && npm run build',
-		config = function()
-			require('tailwind-sorter').setup({
-				on_save = true,
-				order_by = {
-					'custom',
-					'variants',
-					'Unknown',
-				},
-			})
-		end
-	},
-	{
-		"tjdevries/templ.nvim"
-	},
-	{
-		"R-nvim/R.nvim",
-		dependencies = {
-			"nvim-treesitter/nvim-treesitter",
-			"R-nvim/cmp-r"
-		},
-		-- Only required if you also set defaults.lazy = true
-		lazy = false,
-		-- R.nvim is still young and we may make some breaking changes from time
-		-- to time. For now we recommend pinning to the latest minor version
-		-- like so:
-		version = "~0.1.0"
-	},
-	{
-		"R-nvim/cmp-r",
-		{
-			"hrsh7th/nvim-cmp",
-			config = function()
-				require("cmp").setup({ sources = {{ name = "cmp_r" }}})
-				require("cmp_r").setup({})
-			end,
-		},
-	},
-	{"tweekmonster/django-plus.vim" },
-	{ "interdependence/tree-sitter-htmldjango" },
-	{ "galooshi/vim-import-js" },
-	{ 'windwp/nvim-ts-autotag' },
-	{ 'tranvansang/octave.vim' },
-	{
-		'ggandor/leap.nvim',
-		dependencies = { 'tpope/vim-repeat' }
-	},
-	{
-		'Wansmer/treesj',
-		keys = { '<space>m', '<space>j', '<space>s' },
-		dependencies = { 'nvim-treesitter/nvim-treesitter' }, -- if you install parsers with `nvim-treesitter`
-		config = function()
-			require('treesj').setup({--[[ your config ]]})
-		end,
-	},
-	{
-		'stevearc/oil.nvim',
-		opts = {},
-		-- Optional dependencies
-		dependencies = { { "echasnovski/mini.icons", opts = {} } },
-		-- dependencies = { "nvim-tree/nvim-web-devicons" }, -- use if prefer nvim-web-devicons
-	},
-	{'mbbill/undotree'},
-	{'othree/xml.vim'},
-	{
-		"folke/trouble.nvim",
-		opts = {}, -- for default options, refer to the configuration section for custom setup.
-		cmd = "Trouble",
-		keys = {
-			{
-				"<leader>xx",
-				"<cmd>Trouble diagnostics toggle<cr>",
-				desc = "Diagnostics (Trouble)",
-			},
-			{
-				"<leader>xX",
-				"<cmd>Trouble diagnostics toggle filter.buf=0<cr>",
-				desc = "Buffer Diagnostics (Trouble)",
-			},
-			{
-				"<leader>cs",
-				"<cmd>Trouble symbols toggle focus=false<cr>",
-				desc = "Symbols (Trouble)",
-			},
-			{
-				"<leader>cl",
-				"<cmd>Trouble lsp toggle focus=false win.position=right<cr>",
-				desc = "LSP Definitions / references / ... (Trouble)",
-			},
-			{
-				"<leader>xL",
-				"<cmd>Trouble loclist toggle<cr>",
-				desc = "Location List (Trouble)",
-			},
-			{
-				"<leader>xQ",
-				"<cmd>Trouble qflist toggle<cr>",
-				desc = "Quickfix List (Trouble)",
-			},
-		},
-	},
-	-- {'nvim-java/nvim-java'},
-	{
-		'barrett-ruth/live-server.nvim',
-		build = 'pnpm add -g live-server',
-		cmd = { 'LiveServerStart', 'LiveServerStop' },
-		config = true
-	},
-	-- ipynb 
-	{
-		'vim-jukit'
-	},
-	-- neovim-tmux
-	{
-		'christoomey/vim-tmux-navigator',
-		lazy = false
-	},
-	-- docker cu
-	{
-		'krisajenkins/telescope-docker.nvim',
-		event = 'VeryLazy',
-		dependencies = {
-			'nvim-telescope/telescope.nvim',
-		},
-		config = function()
-			require('telescope').load_extension('telescope_docker')
-			require('telescope_docker').setup {}
-		end,
-
-		-- Example keybindings. Adjust these to suit your preferences or remove
-		--   them entirely:
-		keys = {
-			{
-				'<Leader>dv',
-				':Telescope telescope_docker docker_volumes<CR>',
-				desc = '[D]ocker [V]olumes',
-			},
-			{
-				'<Leader>di',
-				':Telescope telescope_docker docker_images<CR>',
-				desc = '[D]ocker [I]mages',
-			},
-			{
-				'<Leader>dp',
-				':Telescope telescope_docker docker_ps<CR>',
-				desc = '[D]ocker [P]rocesses',
-			},
-		},
-	},
-	-- remote development
-	{
-		"amitds1997/remote-nvim.nvim",
-		version = "*", -- Pin to GitHub releases
-		dependencies = {
-			"nvim-lua/plenary.nvim", -- For standard functions
-			"MunifTanjim/nui.nvim", -- To build the plugin UI
-			"nvim-telescope/telescope.nvim", -- For picking b/w different remote methods
-		},
-		config = true,
-	},
-	-- for taking code snapshot 
-	{
-		'michaelrommel/nvim-silicon',
-		lazy = true,
-		cmd = "Silicon",
-		config = function()
-			require("silicon").setup({
-				-- Configuration here, or leave empty to use defaults
-				font = "JetBrains Mono Nerd Font=34;Noto Color Emoji=34"
-			})
-		end
-	},
-	-- for notes
-	{
-		'vimwiki/vimwiki'
-	},
-	-- snippets 
-	{
-		'dcampos/nvim-snippy'
-	},
-	-- latex
-	{
-		'lervag/vimtex'
-	},
-	-- surround
-	{
-		'tpope/vim-surround'
-	},
-	-- dev container
-	{
-		'https://codeberg.org/esensar/nvim-dev-container',
-		dependencies = 'nvim-treesitter/nvim-treesitter'
-	},
-	-- emmet 
-	{
-		'mattn/emmet-vim'
-	},
-	-- telescope
-	{
-		'nvim-telescope/telescope.nvim', tag = '0.1.5',
-		dependencies = { 'nvim-lua/plenary.nvim' }
-	},
-
-	-- Auto pair
-	{
-		'windwp/nvim-autopairs',
-		event = "InsertEnter",
-		opts = {} -- this is equalent to setup({}) function
-	},
-
-	-- Colorizer
-	'norcalli/nvim-colorizer.lua',
-
-	-- Git related plugins
-	'tpope/vim-fugitive',
-	'tpope/vim-rhubarb',
-
-	-- Detect tabstop and shiftwidth automatically
-	-- 'tpope/vim-sleuth',
-
-	'tpope/vim-surround',
-	{
-		'nvim-neo-tree/neo-tree.nvim',
-		cmd = 'Neotree',
-		init = function()
-			vim.api.nvim_create_autocmd('BufEnter', {
-				-- make a group to be able to delete it later
-				group = vim.api.nvim_create_augroup('NeoTreeInit', {clear = true}),
-				callback = function()
-					local f = vim.fn.expand('%:p')
-					if vim.fn.isdirectory(f) ~= 0 then
-						vim.cmd('Neotree current dir=' .. f)
-						-- neo-tree is loaded now, delete the init autocmd
-						vim.api.nvim_clear_autocmds{group = 'NeoTreeInit'}
-					end
-				end
-			})
-			-- keymaps
-		end,
-		opts = {
-			filesystem = {
-				hijack_netrw_behavior = 'open_current',
-				follow_current_file = {
-					enabled = true
-				},
-			},
-			window = {
-				position = 'right'
-			}
-		}
-	},
-
-	-- NOTE: This is where your plugins related to LSP can be installed.
-	--  The configuration is done below. Search for lspconfig to find it below.
-	{
-		-- LSP Configuration & Plugins
-		'neovim/nvim-lspconfig',
-		dependencies = {
-			-- Automatically install LSPs to stdpath for neovim
-			'williamboman/mason.nvim',
-			'williamboman/mason-lspconfig.nvim',
-
-			-- Useful status updates for LSP
-			-- NOTE: `opts = {}` is the same as calling `require('fidget').setup({})`
-			{ 'j-hui/fidget.nvim', opts = {} },
-
-			-- Additional lua configuration, makes nvim stuff amazing!
-			'folke/neodev.nvim',
-		},
-		config = function()
-			local lspconfig = require('lspconfig')
-			-- Tailwind CSS Language Server
-			lspconfig.tailwindcss.setup({
-				filetypes = { "templ", "astro", "javascript", "typescript", "react" },
-				settings = {
-					tailwindCSS = {
-						experimental = {
-							classRegex = {
-								-- Support for Templ class attributes
-								{ "class:\\s*\"([^\"]*)", "\"([^\"]*)\"" },
-								{ "class:\\s*'([^']*)", "'([^']*)'" },
-								{ "class=[{]?\"?([^\"}>]*)", "\"?([^\"}]*)" }
-							}
-						}
-					}
-				}
-			})
-		end,
-	},
-
-	{
-		-- Autocompletion
-		'hrsh7th/nvim-cmp', dependencies = {
-			-- Snippet Engine & its associated nvim-cmp source
-			'L3MON4D3/LuaSnip',
-			'saadparwaiz1/cmp_luasnip',
-
-			-- Adds LSP completion capabilities
-			'hrsh7th/cmp-nvim-lsp',
-			'hrsh7th/cmp-path',
-
-			-- Adds a number of user-friendly snippets
-			'rafamadriz/friendly-snippets',
-		},
-	},
-
-	-- Useful plugin to show you pending keybinds.
-	{ 'folke/which-key.nvim', opts = {} },
-	{
-		-- Adds git related signs to the gutter, as well as utilities for managing changes
-		'lewis6991/gitsigns.nvim',
-		opts = {
-			-- See `:help gitsigns.txt`
-			signs = {
-				add = { text = '+' },
-				change = { text = '~' },
-				delete = { text = '_' },
-				topdelete = { text = '‾' },
-				changedelete = { text = '~' },
-			},
-			on_attach = function(bufnr)
-				local gs = package.loaded.gitsigns
-
-				local function map(mode, l, r, opts)
-					opts = opts or {}
-					opts.buffer = bufnr
-					vim.keymap.set(mode, l, r, opts)
-				end
-
-				-- Navigation
-				map({ 'n', 'v' }, ']c', function()
-					if vim.wo.diff then
-						return ']c'
-					end
-					vim.schedule(function()
-						gs.next_hunk()
-					end)
-					return '<Ignore>'
-					end, { expr = true, desc = 'Jump to next hunk' })
-
-				map({ 'n', 'v' }, '[c', function()
-					if vim.wo.diff then
-						return '[c'
-					end
-					vim.schedule(function()
-						gs.prev_hunk()
-					end)
-					return '<Ignore>'
-					end, { expr = true, desc = 'Jump to previous hunk' })
-
-				-- Actions
-				-- visual mode
-				map('v', '<leader>hs', function()
-					gs.stage_hunk { vim.fn.line '.', vim.fn.line 'v' }
-					end, { desc = 'stage git hunk' })
-				map('v', '<leader>hr', function()
-					gs.reset_hunk { vim.fn.line '.', vim.fn.line 'v' }
-					end, { desc = 'reset git hunk' })
-				-- normal mode
-				map('n', '<leader>hs', gs.stage_hunk, { desc = 'git stage hunk' })
-				map('n', '<leader>hr', gs.reset_hunk, { desc = 'git reset hunk' })
-				map('n', '<leader>hS', gs.stage_buffer, { desc = 'git Stage buffer' })
-				map('n', '<leader>hu', gs.undo_stage_hunk, { desc = 'undo stage hunk' })
-				map('n', '<leader>hR', gs.reset_buffer, { desc = 'git Reset buffer' })
-				map('n', '<leader>hp', gs.preview_hunk, { desc = 'preview git hunk' })
-				map('n', '<leader>hb', function()
-					gs.blame_line { full = false }
-					end, { desc = 'git blame line' })
-				map('n', '<leader>hd', gs.diffthis, { desc = 'git diff against index' })
-				map('n', '<leader>hD', function()
-					gs.diffthis '~'
-					end, { desc = 'git diff against last commit' })
-
-				-- Toggles
-				map('n', '<leader>tb', gs.toggle_current_line_blame, { desc = 'toggle git blame line' })
-				map('n', '<leader>td', gs.toggle_deleted, { desc = 'toggle git show deleted' })
-
-				-- Text object
-				map({ 'o', 'x' }, 'ih', ':<C-U>Gitsigns select_hunk<CR>', { desc = 'select git hunk' })
-			end,
-		},
-	},
-
-	{
-		-- Theme inspired by Atom
-		'https://github.com/shaunsingh/nord.nvim',
-		priority = 1000,
-	},
-
-	{
-		-- Set lualine as statusline
-		'nvim-lualine/lualine.nvim',
-		-- See `:help lualine.txt`
-		opts = {
-			options = {
-				icons_enabled = false,
-				theme = 'onedark',
-				component_separators = '|',
-				section_separators = '',
-			},
-		},
-	},
-
-	{
-		-- Add indentation guides even on blank lines
-		'lukas-reineke/indent-blankline.nvim',
-		-- Enable `lukas-reineke/indent-blankline.nvim`
-		-- See `:help ibl`
-		main = 'ibl',
-		opts = {},
-	},
-
-	-- "gc" to comment visual regions/lines
-	{ 'numToStr/Comment.nvim', opts = {} },
-
-	-- Fuzzy Finder (files, lsp, etc)
-	{
-		'nvim-telescope/telescope.nvim',
-		branch = '0.1.x',
-		dependencies = {
-			'nvim-lua/plenary.nvim',
-			-- Fuzzy Finder Algorithm which requires local dependencies to be built.
-			-- Only load if `make` is available. Make sure you have the system
-			-- requirements installed.
-			{
-				'nvim-telescope/telescope-fzf-native.nvim',
-				-- NOTE: If you are having trouble with this installation,
-				--       refer to the README for telescope-fzf-native for more instructions.
-				build = 'make',
-				cond = function()
-					return vim.fn.executable 'make' == 1
-				end,
-			},
-		},
-	},
-
-	{
-		-- Highlight, edit, and navigate code
-		'nvim-treesitter/nvim-treesitter',
-		dependencies = {
-			'nvim-treesitter/nvim-treesitter-textobjects',
-		},
-		build = ':TSUpdate',
-		run = ":TSUpdate",
-		config = function ()
-			require("nvim-treesitter.configs").setup({
-				ensure_installed = { "markdown", "markdown_inline", "r", "rnoweb", "yaml" },
-				highlight = { enable = true },
-			})
-		end
-	},
-
-	-- NOTE: Next Step on Your Neovim Journey: Add/Configure additional "plugins" for kickstart
-	--       These are some example plugins that I've included in the kickstart repository.
-	--       Uncomment any of the lines below to enable them.
-	-- require 'kickstart.plugins.autoformat',
-	-- require 'kickstart.plugins.debug',
-
-	-- NOTE: The import below can automatically add your own plugins, configuration, etc from `lua/custom/plugins/*.lua`
-	--    You can use this folder to prevent any conflicts with this init.lua if you're interested in keeping
-	--    up-to-date with whatever is in the kickstart repo.
-	--    Uncomment the following line and add your plugins to `lua/custom/plugins/*.lua` to get going.
-	--
-	--    For additional information see: https://github.com/folke/lazy.nvim#-structuring-your-plugins
-	-- { import = 'custom.plugins' },
-}, {})
 
 -- [[ Setting options ]]
 -- See `:help vim.o`
@@ -609,9 +112,7 @@ vim.o.timeoutlen = 300
 -- Set completeopt to have a better completion experience
 vim.o.completeopt = 'menuone,noselect'
 
--- NOTE: You should make sure your terminal supports this
 vim.o.termguicolors = true
-vim.cmd'colorscheme nord'
 
 -- -- tabbing
 vim.o.tabstop = 4
@@ -645,22 +146,24 @@ vim.api.nvim_create_autocmd('TextYankPost', {
 	pattern = '*',
 })
 
--- [[ Configure Telescope ]]
--- See `:help telescope` and `:help telescope.setup()`
-require('telescope').setup {
-	defaults = {
-		mappings = {
-			i = {
-				['<C-u>'] = false,
-				['<C-d>'] = false,
-			},
-		},
-		vimgrep_arguments = {
-			"rg",
-			'--hidden',
-		}
-	},
-}
+local additional_rg_args = { "--hidden", "--glob", "!**/.git/*", "--glob", "!**/node_modules/*" }
+
+require("telescope").setup({
+  extensions = {
+    ["ui-select"] = {
+      require("telescope.themes").get_dropdown({}),
+    },
+  },
+  defaults = {},
+  pickers = {
+    find_files = {
+      -- `hidden = true` will still show the inside of `.git/` as it's not `.gitignore`d.
+      find_command = { "rg", "--files", "--hidden", "--glob", "!**/.git/*" },
+    },
+    live_grep = { additional_args = additional_rg_args },
+    grep_string = { additional_args = additional_rg_args },
+  },
+})
 
 -- Enable telescope fzf native, if installed
 pcall(require('telescope').load_extension, 'fzf')
@@ -846,7 +349,6 @@ local on_attach = function(_, bufnr)
 		end, { desc = 'Format current buffer with LSP' })
 end
 
--- document existing key chains
 require('which-key').register {
 	['<leader>c'] = { name = '[C]ode', _ = 'which_key_ignore' },
 	['<leader>d'] = { name = '[D]ocument', _ = 'which_key_ignore' },
@@ -1004,36 +506,6 @@ cmp.setup {
 	},
 }
 
-require("devcontainer").setup{}
-
--- require'nvim-treesitter.configs'.setup {
--- 	highlight = {
--- 		enable = true,
--- 		disable = { "html", "django" },
---
---   -- Automatically install missing parsers when entering buffer
---   -- Recommendation: set to false if you don't have `tree-sitter` CLI installed locally
--- 		-- auto_install = true,
--- 	}
--- }
-
-
-local builtin = require('telescope.builtin')
-vim.keymap.set('n', '<leader>ff', builtin.find_files, {})
-vim.keymap.set('n', '<leader>fg', builtin.live_grep, {})
-vim.keymap.set('n', '<leader>fb', builtin.buffers, {})
-vim.keymap.set('n', '<leader>fh', builtin.help_tags, {})
-
--- The line beneath this is called `modeline`. See `:help modeline`
--- vim: ts=2 sts=2 sw=2 et
---
-
--- require'java'.setup()
--- require('lspconfig').jdtls.setup({})
-require('lspconfig').html.setup{
-	disable = true
-}
-
 require('lspconfig').gopls.setup {
 	cmd = { "gopls" },
 	filetypes = { "go", "gomod", "gowork", "gotmpl" },
@@ -1052,35 +524,39 @@ require'lspconfig'.clangd.setup{}
 
 require'lspconfig'.eslint.setup{}
 
-require'lspconfig'.tailwindcss.setup{
--- Ensure Tailwind LSP runs on Templ files
-        filetypes = {
-          'html', 
-          'css', 
-          'scss', 
-          'javascript', 
-          'javascriptreact', 
-          'typescript', 
-          'typescriptreact', 
-          'svelte', 
-          'vue', 
-          'templ'  -- Explicitly add templ here
-        },
-        
-        -- Advanced class detection for Templ
-        settings = {
-          tailwindCSS = {
-            experimental = {
-              classRegex = {
-                -- Templ-specific class attribute patterns
-                { "class:\\s*\"([^\"]*)", "\"([^\"]*)\"" },
-                { "class:\\s*'([^']*)", "'([^']*)'" },
-                -- Add more templ-specific regex if needed
-                { "class=[{]?\"?([^\"}>]*)", "\"?([^\"}]*)"} }
-              }
-            }
-          }
-}
+-- require'lspconfig'.tailwindcss.setup{
+-- -- Ensure Tailwind LSP runs on Templ files
+--         filetypes = {
+--           'html',
+--           'css',
+--           'scss',
+--           'javascript',
+--           'javascriptreact',
+--           'typescript',
+--           'typescriptreact',
+--           'svelte',
+--           'vue',
+--           'templ'
+--         },
+--         
+--         settings = {
+--           tailwindCSS = {
+-- 			classAttributes = { "class", "className", "class:list", "classList", "ngClass" },
+-- 			includeLanguages = {
+-- 				eelixir = "html-eex",
+-- 				eruby = "erb",
+-- 				htmlangular = "html",
+-- 				templ = "html"
+-- 			},
+--             experimental = {
+--               classRegex = {
+--                 { "class:\\s*\"([^\"]*)", "\"([^\"]*)\"" },
+--                 { "class:\\s*'([^']*)", "'([^']*)'" },
+--                 { "class=[{]?\"?([^\"}>]*)", "\"?([^\"}]*)"} }
+--               }
+--             }
+--           }
+-- }
 
 require 'colorizer'.setup()
 
@@ -1096,9 +572,8 @@ require('snippy').setup({
 	},
 })
 
-vim.g.loaded_netrwPlugin = 1
-vim.g.loaded_netrw = 1
 vim.keymap.set("n", "<leader>rn", vim.lsp.buf.rename, {})
 vim.keymap.set('n', '<leader>gh', "<CMD>ClangdSwitchSourceHeader<CR>", { desc = "[g]oto [h]eader"})
 vim.filetype.add({ extension = { templ = "templ" } })
---
+vim.g.Tex_GotoError = 0
+vim.api.nvim_set_hl(0, 'Normal', { bg = '#2E3440' })
