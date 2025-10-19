@@ -7,7 +7,6 @@ return {
 		'folke/neodev.nvim',
 	},
 	config = function()
-		local lspconfig = require('lspconfig')
 		-- Tailwind CSS Language Server
 		-- lspconfig.htmx.setup{
 		-- 	filetypes = { "templ" },

@@ -1,0 +1,38 @@
+/home/dapa/.config/nvim/init.lua:-- mason-lspconfig requires that these setup functions are called in this order
+/home/dapa/.config/nvim/init.lua--- before setting up the servers.
+/home/dapa/.config/nvim/init.lua-require('mason').setup()
+/home/dapa/.config/nvim/init.lua:require('mason-lspconfig').setup()
+/home/dapa/.config/nvim/init.lua-
+/home/dapa/.config/nvim/init.lua--- Enable the following language servers
+/home/dapa/.config/nvim/init.lua---  Feel free to add/remove any LSPs that you want here. They will automatically be installed.
+/home/dapa/.config/nvim/init.lua---
+/home/dapa/.config/nvim/init.lua---  Add any additional override configuration in the following tables. They will be passed to
+/home/dapa/.config/nvim/init.lua---  the `settings` field of the server config. You must look up that documentation yourself.
+/home/dapa/.config/nvim/init.lua---
+/home/dapa/.config/nvim/init.lua---  If you want to override the default filetypes that your language server will attach to you can
+/home/dapa/.config/nvim/init.lua---  define the property 'filetypes' to the map in question.
+/home/dapa/.config/nvim/init.lua-local servers = {
+--
+/home/dapa/.config/nvim/init.lua:local mason_lspconfig = require 'mason-lspconfig'
+/home/dapa/.config/nvim/init.lua-
+/home/dapa/.config/nvim/init.lua-mason_lspconfig.setup{
+/home/dapa/.config/nvim/init.lua-	function(server_name)
+/home/dapa/.config/nvim/init.lua-		-- Skip jdtls - we handle it manually with custom config
+/home/dapa/.config/nvim/init.lua-		if server_name == "jdtls" then
+/home/dapa/.config/nvim/init.lua-			return
+/home/dapa/.config/nvim/init.lua-		end
+/home/dapa/.config/nvim/init.lua-
+/home/dapa/.config/nvim/init.lua-		-- Rest of your existing code...
+/home/dapa/.config/nvim/init.lua-			require('lspconfig')[server_name].setup {
+--
+/home/dapa/.config/nvim/lua/custom/plugins/nvim-lspconfig.lua:		'williamboman/mason-lspconfig.nvim',
+/home/dapa/.config/nvim/lua/custom/plugins/nvim-lspconfig.lua-		{ 'j-hui/fidget.nvim', opts = {} },
+/home/dapa/.config/nvim/lua/custom/plugins/nvim-lspconfig.lua-		'folke/neodev.nvim',
+/home/dapa/.config/nvim/lua/custom/plugins/nvim-lspconfig.lua-	},
+/home/dapa/.config/nvim/lua/custom/plugins/nvim-lspconfig.lua-	config = function()
+/home/dapa/.config/nvim/lua/custom/plugins/nvim-lspconfig.lua-		-- Tailwind CSS Language Server
+/home/dapa/.config/nvim/lua/custom/plugins/nvim-lspconfig.lua-		-- lspconfig.htmx.setup{
+/home/dapa/.config/nvim/lua/custom/plugins/nvim-lspconfig.lua-		-- 	filetypes = { "templ" },
+/home/dapa/.config/nvim/lua/custom/plugins/nvim-lspconfig.lua-		-- }
+/home/dapa/.config/nvim/lua/custom/plugins/nvim-lspconfig.lua-		-- lspconfig.tailwindcss.setup({
+/home/dapa/.config/nvim/lua/custom/plugins/nvim-lspconfig.lua-		-- 	filetypes = { "templ", "astro", "javascript", "typescript", "react" },

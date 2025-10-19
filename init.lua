@@ -47,6 +47,7 @@ map("n", "<C-D>", "d", opts)
 map("v", "<C-D>", "d", opts)
 
 vim.keymap.set('n', '<leader>u', vim.cmd.UndotreeToggle)
+vim.keymap.set('n', '<leader>gd', vim.lsp.buf.definition)
 
 -- keymaps for vimwiki
 map("n", "<leader>nt", ":VimwikiTable 1  2<CR>", opts)
@@ -61,17 +62,17 @@ map("n", "<C-l>", "<cmd> TmuxNavigateRight<CR>", opts)
 map('n', '<A-c>', '<Cmd>bw<CR>', opts)
 
 
-vim.api.nvim_set_keymap("n", "<A-n>", ":Neotree toggle <CR>", { noremap = true, silent = true})
+vim.api.nvim_set_keymap("n", "<A-n>", ":Neotree toggle <CR>", { noremap = true, silent = true })
 
-vim.api.nvim_set_keymap('n', '<space>e', '<cmd>lua vim.diagnostic.open_float()<CR>', { noremap=true, silent=true })
+vim.api.nvim_set_keymap('n', '<space>e', '<cmd>lua vim.diagnostic.open_float()<CR>', { noremap = true, silent = true })
 
 vim.keymap.set("n", "-", "<CMD>Oil<CR>", { desc = "Open parent directory" })
 
 vim.keymap.set('n', '<leader>m', "<CMD>TSJToggle<CR>", { desc = "Line splitting toggle" })
 
-vim.keymap.set({'n', 'x', 'o'}, '<leader>l',  '<Plug>(leap-forward)')
-vim.keymap.set({'n', 'x', 'o'}, '<leader>L',  '<Plug>(leap-backward)')
-vim.keymap.set({'n', 'x', 'o'}, '<leader>gl', '<Plug>(leap-from-window)')
+vim.keymap.set({ 'n', 'x', 'o' }, '<leader>l', '<Plug>(leap-forward)')
+vim.keymap.set({ 'n', 'x', 'o' }, '<leader>L', '<Plug>(leap-backward)')
+vim.keymap.set({ 'n', 'x', 'o' }, '<leader>gl', '<Plug>(leap-from-window)')
 
 
 -- [[ Setting options ]]
@@ -115,8 +116,8 @@ vim.o.completeopt = 'menuone,noselect'
 vim.o.termguicolors = true
 
 -- -- tabbing
-vim.o.tabstop = 4
-vim.o.shiftwidth = 4
+vim.o.tabstop = 2
+vim.o.shiftwidth = 2
 vim.o.expandtab = false
 
 -- [[ Basic Keymaps ]]
@@ -149,20 +150,20 @@ vim.api.nvim_create_autocmd('TextYankPost', {
 local additional_rg_args = { "--hidden", "--glob", "!**/.git/*", "--glob", "!**/node_modules/*" }
 
 require("telescope").setup({
-  extensions = {
-    ["ui-select"] = {
-      require("telescope.themes").get_dropdown({}),
-    },
-  },
-  defaults = {},
-  pickers = {
-    find_files = {
-      -- `hidden = true` will still show the inside of `.git/` as it's not `.gitignore`d.
-      find_command = { "rg", "--files", "--hidden", "--glob", "!**/.git/*" },
-    },
-    live_grep = { additional_args = additional_rg_args },
-    grep_string = { additional_args = additional_rg_args },
-  },
+	extensions = {
+		["ui-select"] = {
+			require("telescope.themes").get_dropdown({}),
+		},
+	},
+	defaults = {},
+	pickers = {
+		find_files = {
+			-- `hidden = true` will still show the inside of `.git/` as it's not `.gitignore`d.
+			find_command = { "rg", "--files", "--hidden", "--glob", "!**/.git/*" },
+		},
+		live_grep = { additional_args = additional_rg_args },
+		grep_string = { additional_args = additional_rg_args },
+	},
 })
 
 -- Enable telescope fzf native, if installed
@@ -241,7 +242,7 @@ vim.defer_fn(function()
 		sync_install = false,
 		ignore_install = {},
 		-- Add languages to be installed here that you want installed for treesitter
-		ensure_installed = { 'c', 'cpp', 'go', 'lua', 'python', 'rust', 'tsx', 'javascript', 'typescript', 'vimdoc', 'vim', 'bash', 'kotlin', 'java',},
+		ensure_installed = { 'c', 'cpp', 'go', 'lua', 'python', 'rust', 'tsx', 'javascript', 'typescript', 'vimdoc', 'vim', 'bash', 'kotlin', 'java', },
 
 		-- Autoinstall languages that are not installed. Defaults to false (but you can change for yourself!)
 		auto_install = false,
@@ -324,7 +325,6 @@ local on_attach = function(_, bufnr)
 	-- nmap('<leader>rn', vim.lsp.buf.rename, '[R]e[n]ame')
 	nmap('<leader>ca', vim.lsp.buf.code_action, '[C]ode [A]ction')
 
-	nmap('gd', require('telescope.builtin').lsp_definitions, '[G]oto [D]efinition')
 	nmap('gr', require('telescope.builtin').lsp_references, '[G]oto [R]eferences')
 	nmap('gI', require('telescope.builtin').lsp_implementations, '[G]oto [I]mplementation')
 	nmap('<leader>D', require('telescope.builtin').lsp_type_definitions, 'Type [D]efinition')
@@ -341,29 +341,37 @@ local on_attach = function(_, bufnr)
 	nmap('<leader>wr', vim.lsp.buf.remove_workspace_folder, '[W]orkspace [R]emove Folder')
 	nmap('<leader>wl', function()
 		print(vim.inspect(vim.lsp.buf.list_workspace_folders()))
-		end, '[W]orkspace [L]ist Folders')
+	end, '[W]orkspace [L]ist Folders')
 
 	-- Create a command `:Format` local to the LSP buffer
 	vim.api.nvim_buf_create_user_command(bufnr, 'Format', function(_)
 		vim.lsp.buf.format()
-		end, { desc = 'Format current buffer with LSP' })
+	end, { desc = 'Format current buffer with LSP' })
 end
 
 require('which-key').register {
-	['<leader>c'] = { name = '[C]ode', _ = 'which_key_ignore' },
-	['<leader>d'] = { name = '[D]ocument', _ = 'which_key_ignore' },
-	['<leader>g'] = { name = '[G]it', _ = 'which_key_ignore' },
-	['<leader>h'] = { name = 'Git [H]unk', _ = 'which_key_ignore' },
-	['<leader>r'] = { name = '[R]ename', _ = 'which_key_ignore' },
-	['<leader>s'] = { name = '[S]earch', _ = 'which_key_ignore' },
-	['<leader>t'] = { name = '[T]oggle', _ = 'which_key_ignore' },
-	['<leader>w'] = { name = '[W]orkspace', _ = 'which_key_ignore' },
+	{ "", group = "[G]it" },
+	{ "", group = "[W]orkspace" },
+	{ "", desc = "<leader>t_", hidden = true },
+	{ "", group = "[T]oggle" },
+	{ "", desc = "<leader>w_", hidden = true },
+	{ "", desc = "<leader>c_", hidden = true },
+	{ "", group = "[C]ode" },
+	{ "", group = "[D]ocument" },
+	{ "", desc = "<leader>s_", hidden = true },
+	{ "", desc = "<leader>r_", hidden = true },
+	{ "", desc = "<leader>g_", hidden = true },
+	{ "", group = "[S]earch" },
+	{ "", group = "Git [H]unk" },
+	{ "", group = "[R]ename" },
+	{ "", desc = "<leader>h_", hidden = true },
+	{ "", desc = "<leader>d_", hidden = true },
 }
 -- register which-key VISUAL mode
 -- required for visual <leader>hs (hunk stage) to work
-require('which-key').register({
-	['<leader>'] = { name = 'VISUAL <leader>' },
-	['<leader>h'] = { 'Git [H]unk' },
+require('which-key').register(
+    { "<leader>", group = "VISUAL <leader>", mode = "v" },
+    { "<leader>h", desc = "Git [H]unk", mode = "v" 
 }, { mode = 'v' })
 
 -- mason-lspconfig requires that these setup functions are called in this order
@@ -413,16 +421,18 @@ mason_lspconfig.setup {
 	ensure_installed = vim.tbl_keys(servers),
 }
 
-mason_lspconfig.setup_handlers {
-	function(server_name)
+-- Manual setup for each server, skipping jdtls
+for server_name, _ in pairs(servers) do
+	if server_name ~= "jdtls" then
 		require('lspconfig')[server_name].setup {
 			capabilities = capabilities,
 			on_attach = on_attach,
 			settings = servers[server_name],
 			filetypes = (servers[server_name] or {}).filetypes,
 		}
-	end,
-}
+	end
+end
+
 
 -- vim.api.nvim_create_autocmd({ "FileType" }, {
 --   pattern = "css,eruby,html,htmldjango,javascriptreact,less,pug,sass,scss,typescriptreact",
@@ -488,7 +498,7 @@ cmp.setup {
 			else
 				fallback()
 			end
-			end, { 'i', 's' }),
+		end, { 'i', 's' }),
 		['<S-Tab>'] = cmp.mapping(function(fallback)
 			if cmp.visible() then
 				cmp.select_prev_item()
@@ -497,7 +507,7 @@ cmp.setup {
 			else
 				fallback()
 			end
-			end, { 'i', 's' }),
+		end, { 'i', 's' }),
 	},
 	sources = {
 		{ name = 'nvim_lsp' },
@@ -520,9 +530,9 @@ require('lspconfig').gopls.setup {
 	}
 }
 
-require'lspconfig'.clangd.setup{}
+require 'lspconfig'.clangd.setup {}
 
-require'lspconfig'.eslint.setup{}
+require 'lspconfig'.eslint.setup {}
 
 -- require'lspconfig'.tailwindcss.setup{
 -- -- Ensure Tailwind LSP runs on Templ files
@@ -538,7 +548,7 @@ require'lspconfig'.eslint.setup{}
 --           'vue',
 --           'templ'
 --         },
---         
+--
 --         settings = {
 --           tailwindCSS = {
 -- 			classAttributes = { "class", "className", "class:list", "classList", "ngClass" },
@@ -573,7 +583,7 @@ require('snippy').setup({
 })
 
 vim.keymap.set("n", "<leader>rn", vim.lsp.buf.rename, {})
-vim.keymap.set('n', '<leader>gh', "<CMD>ClangdSwitchSourceHeader<CR>", { desc = "[g]oto [h]eader"})
+vim.keymap.set('n', '<leader>gh', "<CMD>ClangdSwitchSourceHeader<CR>", { desc = "[g]oto [h]eader" })
 vim.filetype.add({ extension = { templ = "templ" } })
 vim.g.Tex_GotoError = 0
 vim.api.nvim_set_hl(0, 'Normal', { bg = '#2E3440' })
